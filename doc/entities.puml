@@ -1,0 +1,69 @@
+@startuml ER-Diagram
+
+title Simulator Entitys
+
+entity Node {
+    + ID:        uid
+    + Peers:     []ID
+    + Mempool:   []TX
+    
+}
+
+entity NodeMetaInfo {
+    + ID:               uid
+    + Region:           string
+    + MiningPower[H/s]: u32
+}
+
+entity Block {
+    + BlockHeader: *BlockHeader
+    + BlockBody:   *BlockBody
+}
+
+entity BlockHeader {
+    + Version:   u32
+    + PrevBlock: *Block 
+    + MerleRoot: *BlockBody
+    + timestamp: u32
+}
+
+entity BlockBody {
+    + txs: []TX
+}
+
+entity Transaction {
+    + Version:  u32
+    + Inputs :  []Input 
+    + Outputs : []Output
+    + LockTime: u32
+    ---
+    + txid : SHA256
+}
+
+entity Input {
+    + txid : SHA256
+    + vout : []out_ind
+    + SignatureScript
+}
+
+entity Output {
+    + amount : u64
+    + PublicScript
+    ---
+    + ind: u32
+}
+
+Node ||--|| NodeMetaInfo
+Node ||--|{ Block
+
+Block ||--|| BlockHeader
+Block ||--o| BlockBody
+BlockHeader ||--o| BlockBody
+
+Node }o--o{ Transaction
+BlockBody ||--|{ Transaction
+
+Transaction ||--|{ Input
+Transaction ||--|{ Output
+
+@enduml

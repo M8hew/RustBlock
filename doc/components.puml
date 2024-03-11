@@ -1,0 +1,31 @@
+@startuml Context
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Blochain-network simulator components
+
+System(oracle, "Oracle", "Coordinates the actions of the nodes")
+
+System_Boundary(BCNetwork, "Bc Network") {
+    System(network, "Network component", "Provides a network abstraction that defines delays")
+
+    System_Ext(node_1, "Node", "Stores his own state and behaves like a blockchain node.")
+    System_Ext(node_2, "Node", "Stores his own state and behaves like a blockchain node.")
+    System_Ext(node_3, "Node", "Stores his own state and behaves like a blockchain node.")
+    
+    node_1 -down-> network
+    node_2 -down-> network
+    node_3 -down-> network
+
+    network -up-> node_1
+    network -up-> node_2
+    network -up-> node_3
+
+}
+
+oracle -down-> node_1
+oracle -down-> node_2
+oracle -down-> node_3
+
+
+@enduml
