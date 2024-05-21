@@ -1,12 +1,13 @@
-use dslab::{Id, SimulationContext};
-use rand::{rngs::ThreadRng, Rng};
-use serde::Serialize;
+use dslab::{Id, SimulationContext, Simulation};
+use rand::rngs::ThreadRng;
+use rand::seq::SliceRandom;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::vec::Vec;
-use uuid::Uuid;
 
-use crate::components::Tx;
+use crate::_structs_2::Message;
+use crate::_messages_2::Messages;
+use crate::common::{gen_tx, calculate_delay};
 
 pub struct Driver {
     id: Id,
@@ -22,80 +23,48 @@ impl Driver {
         Self {
             id: ctx.id(),
             ctx: Rc::new(RefCell::new(ctx)),
-            node_ids: vec![],
+            node_ids: Vec::new(),
             rng: rand::thread_rng(),
         }
     }
 
-    pub fn add_id(&mut self, id: Id) {
-        self.node_ids.push(id)
+    pub fn add_id(&mut self, ids: Vec<Id>) {
+        self.node_ids = ids
     }
 
-    pub fn run_trigger(&mut self) {
-        // scenario
-        /*
+    pub fn run_scenario(&mut self, sim: &mut Simulation) {
+        sim.step_for_duration(5.0);
+        self.send_transactions(30, 10);
+    }
 
-        1---3--4--5--7
-         \ /      \ /
-          2        6
+    fn send_transactions(&mut self, n_tx: u32, n_nodes: usize) {
+        let mut txs = Vec::new();
+        for _i in 0..=n_tx {
+            txs.push(gen_tx);
+        }
 
-        */
-        self.ctx.borrow().emit(
-            ControlMessage {
-                message_type: ControlMessageType::ConnectNodes {
-                    node_ids: vec![self.node_ids[0], self.node_ids[1], self.node_ids[3]],
-                },
+        let mut nodes : Vec<_> = self.node_ids.choose_multiple(&mut self.rng, n_nodes).collect();
+        for node in nodes {
+            self.ctx.borrow_mut().emit(Message{
+                sender_addr: self.id,
+                message_payload: Messages::Txs{Txs: txs.clone()},
             },
-            self.node_ids[2],
-            0.0,
-        );
-        self.ctx.borrow().emit(
-            ControlMessage {
-                message_type: ControlMessageType::ConnectNodes {
-                    node_ids: vec![self.node_ids[3], self.node_ids[5], self.node_ids[6]],
-                },
-            },
-            self.node_ids[4],
-            0.0,
-        );
-
-        for i in 1..30 {
-            let node_send_to = self.rng.gen_range(0..=self.node_ids.len() - 1);
-            let rand_delay: f64 = self.rng.gen();
-            self.ctx.borrow().emit(
-                ControlMessage {
-                    message_type: ControlMessageType::ProcessTransaction {
-                        tx: Tx {
-                            tx_id: Uuid::new_v4().as_u128(),
-                        },
-                    },
-                },
-                self.node_ids[node_send_to],
-                1.3 + rand_delay,
+            node.clone(),
+            calculate_delay(self.id, node.clone()),
             );
-
-            if i % 5 == 0 {
-                self.ctx.borrow().emit(
-                    ControlMessage {
-                        message_type: ControlMessageType::PromoteObjects {},
-                    },
-                    self.node_ids[node_send_to],
-                    1.31 + rand_delay,
-                );
-            }
         }
     }
 }
 
-#[derive(Serialize, Clone)]
-pub struct ControlMessage {
-    pub message_type: ControlMessageType,
-}
+// #[derive(Serialize, Clone)]
+// pub struct ControlMessage {
+//     pub message_type: ControlMessageType,
+// }
 
-#[derive(Serialize, Clone)]
-pub enum ControlMessageType {
-    ConnectNodes { node_ids: Vec<Id> },
-    PromoteNodes {},
-    PromoteObjects {},
-    ProcessTransaction { tx: Tx },
-}
+// #[derive(Serialize, Clone)]
+// pub enum ControlMessageType {
+//     ConnectNodes { node_ids: Vec<Id> },
+//     PromoteNodes {},
+//     PromoteObjects {},
+//     ProcessTransaction { tx: Tx },
+// }

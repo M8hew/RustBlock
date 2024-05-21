@@ -1,36 +1,64 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use dslab::Simulation;
+use dslab::{Simulation, Id};
+use rustblock::_full_node::BitcoinFullNode;
 
-use rustblock::driver::{self, Driver};
-use rustblock::node::BitcoinNode;
+use rustblock::common::{create_chain, gen_peers, connect_with_uniform_prob};
+use rustblock::driver::Driver;
+use rustblock::_structs_2::{InitialState, Node};
+
+use log::{debug, info};
+use env_logger;
+// use rustblock::node::BitcoinNode;
+
+fn init_nodes<T: Node + 'static>(
+    sim : &mut Simulation,
+    node_cnt : u32,
+    mut cntr: u32,
+    is_connected: fn(u32, u32)->bool, // change to generating edge list
+    ) -> Vec<Id> {
+
+    let mut  node_ids = Vec::new(); 
+    let latest_block = create_chain();
+    for _i in 1..=node_cnt {
+        let node_name = format!("{} {}", T::node_name(), cntr);
+        let node_ctx = sim.create_context(node_name.clone());
+        let peers = gen_peers(cntr, 1, node_cnt, is_connected);
+
+        let mut new_node = T::new_node(node_ctx, InitialState{
+            known_hosts: peers,
+            known_transactions: Vec::new(),
+            cur_block: latest_block.clone(),
+        });
+        new_node.init();
+        node_ids.push(sim.add_handler(node_name.clone(), Rc::new(RefCell::new(new_node))));            
+        cntr += 1;
+    }
+    node_ids
+}
+
+const FULL_NODE_CNT: u32 = 20;
 
 fn main() {
-    let mut sim = Simulation::new(42);
+    // Initialize the logger
+    env_logger::init();
+    info!("Logging level -- info");
+    debug!("Loggin level -- debug");
 
-    let mut _driver = Driver::new(sim.create_context("Driver"));
+    let mut sim = Simulation::new( 42);
+    let mut driver_ = Driver::new(sim.create_context("Driver"));
 
-    let mut node_hanlders = Vec::new();
+    let cntr = 1;
+    let ids = init_nodes::<BitcoinFullNode>(&mut sim, FULL_NODE_CNT, cntr, connect_with_uniform_prob);
 
-    let node_cnt = 7;
-    for i in 1..=node_cnt {
-        let node_name = format!("node {}", i);
-        let cur_node_handler = Rc::new(RefCell::new(BitcoinNode::new(
-            sim.create_context(node_name.clone()),
-        )));
-        let cur_node_id = sim.add_handler(node_name.clone(), cur_node_handler.clone());
+    driver_.add_id(ids);
 
-        node_hanlders.push(cur_node_handler);
-        _driver.add_id(cur_node_id);
-    }
+    info!("Simulation started");
 
-    _driver.run_trigger();
+    driver_.run_scenario(&mut sim);
 
-    sim.step_until_no_events();
-    // loop for some events, collect stats and call callbacks on events
-
-    for node in node_hanlders {
-        println!("{:?}", node);
-    }
+    info!("Simulation finished");
+    
+    // drop node states
 }
