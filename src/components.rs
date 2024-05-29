@@ -2,6 +2,7 @@ use std::rc::Rc;
 use std::option::Option;
 use crate::messages::Messages;
 
+use rand_distr::num_traits::real;
 use serde::Serialize;
 use dslab::{EventHandler, SimulationContext, Id};
 
@@ -67,19 +68,19 @@ pub trait Node : EventHandler {
     fn connect(&mut self, request_from: Id, peer_info: PeerInfo);
 
     // handles tx requested
-    fn req_tx_handler(&self);
+    fn req_tx_handler(&self, request_from: Id);
     // handles tx proposed
     fn prop_tx_handler(&self, request_from: Id, txs: Vec<Tx>);
 
     // get_addr request handler
-    fn get_addr(&self);
+    fn get_addr(&self, request_from: Id);
     // get_addr response handler
-    fn get_addr_resp(&self);
+    fn get_addr_resp(&self, request_from: Id, addrs: Vec<Id>);
 
     // get_block request handler
-    fn get_block(&self);
+    fn get_block(&self, request_from: Id, last_known_height: u32);
     // get_block response handler
-    fn get_block_resp(&self);
+    fn get_block_resp(&self, request_from: Id);
 
 
     // get block headers ?
@@ -88,7 +89,7 @@ pub trait Node : EventHandler {
     // 
 
     // for self given events
-    fn custom(&self);
+    fn custom(&self, request_from: Id);
     // stat count
-    fn middlerware(&self);
+    fn middlerware(&self, msg: Message);
 }

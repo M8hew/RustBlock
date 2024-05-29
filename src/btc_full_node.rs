@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::string::String;
+use std::cmp::min;
 
 use dslab::log_debug;
 use dslab::{cast, log_info, Event, Id, SimulationContext, EventHandler};
@@ -67,7 +68,7 @@ impl Node for BitcoinFullNode {
         for id in self.known_hosts.iter() {
             self.ctx.borrow_mut().emit(
                 Message{
-                    sender_addr: self.id,
+                    sender_addr: self.id.clone(),
                     message_payload: Messages::Connect{info: PeerInfo{type_: self.type_}}
                 },
                 id.clone(),
@@ -95,6 +96,63 @@ impl Node for BitcoinFullNode {
     }
 
     fn prop_tx_handler(&self, request_from: Id, txs: Vec<Tx>) {
-        // TODO 
+        for tx in txs {
+            self.mempool.push(tx.clone());
+        }
+
+        for id in self.known_hosts {
+            self.ctx.borrow_mut().emit(
+                Message{
+                    sender_addr: self.id.clone(),
+                    message_payload: Messages::Txs { Txs: txs },
+                },
+                id.clone(),
+                calculate_delay(self.id.clone(), id.clone()),
+            );
+        }
     }
+
+    fn req_tx_handler(&self, request_from: Id) {
+        let result = Vec::new();
+        let n = self.mempool.len();
+        for i in 0..min(n, 500) {
+            result.push(self.mempool[n - i - 1]);
+        }
+
+        self.ctx.borrow_mut().emit(
+            Message{
+                sender_addr: self.id.clone(),
+                message_payload: Messages::Txs { Txs: result },
+            },
+            request_from.clone(),
+            calculate_delay(self.id.clone(), request_from.clone()),
+        );
+    }
+
+    fn get_addr(&self, request_from: Id) {
+        let result = Vec::new();
+        self.ctx.borrow_mut().emit(
+            Message{
+                sender_addr: self.id.clone(),
+                message_payload: Messages::Addrs { addrs: Vec::from_iter(self.peers.values().cloned()), },
+            },
+            request_from.clone(),
+            calculate_delay(self.id.clone(), request_from.clone()),
+        );
+    }
+
+    fn get_addr_resp(&self, request_from: Id, addrs: Vec<Id>) {
+        for addr in addrs {
+            self.known_hosts.insert(addr);
+        }
+    }
+
+    fn get_block(&self, request_from: Id, last_known_height: u32) {}
+
+    fn get_block_resp(&self, request_from: Id) {}
+
+    fn custom(&self, request_from: Id) {}
+
+    fn middlerware(&self, msg: Message) {}
+
 }
