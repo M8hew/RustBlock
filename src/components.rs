@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use std::option::Option;
-use crate::_messages_2::Messages;
+use crate::messages::Messages;
 
 use serde::Serialize;
 use dslab::{EventHandler, SimulationContext, Id};

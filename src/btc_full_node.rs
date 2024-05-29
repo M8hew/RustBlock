@@ -7,8 +7,8 @@ use std::string::String;
 use dslab::log_debug;
 use dslab::{cast, log_info, Event, Id, SimulationContext, EventHandler};
 
-use crate::_structs_2::{NodeType, PeerInfo, Tx, Message, Node, InitialState, Block};
-use crate::_messages_2::Messages; 
+use crate::components::{NodeType, PeerInfo, Tx, Message, Node, InitialState, Block};
+use crate::messages::Messages; 
 use crate::common::calculate_delay;
 
 pub struct BitcoinFullNode {

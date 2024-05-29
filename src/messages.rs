@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::_structs_2::{PeerInfo, Tx};
+use crate::components::{PeerInfo, Tx};
 
 #[derive(Serialize, Clone)]
 pub enum Messages {

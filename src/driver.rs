@@ -5,8 +5,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::vec::Vec;
 
-use crate::_structs_2::Message;
-use crate::_messages_2::Messages;
+use crate::components::Message;
+use crate::messages::Messages;
 use crate::common::{gen_tx, calculate_delay};
 
 pub struct Driver {
@@ -40,7 +40,7 @@ impl Driver {
     fn send_transactions(&mut self, n_tx: u32, n_nodes: usize) {
         let mut txs = Vec::new();
         for _i in 0..=n_tx {
-            txs.push(gen_tx);
+            txs.push(gen_tx());
         }
 
         let mut nodes : Vec<_> = self.node_ids.choose_multiple(&mut self.rng, n_nodes).collect();
@@ -55,16 +55,3 @@ impl Driver {
         }
     }
 }
-
-// #[derive(Serialize, Clone)]
-// pub struct ControlMessage {
-//     pub message_type: ControlMessageType,
-// }
-
-// #[derive(Serialize, Clone)]
-// pub enum ControlMessageType {
-//     ConnectNodes { node_ids: Vec<Id> },
-//     PromoteNodes {},
-//     PromoteObjects {},
-//     ProcessTransaction { tx: Tx },
-// }

@@ -1,36 +1,9 @@
-# Rust block functionality 
+# Rust block
 
-## 1. Init part
-* Make simulation and init objs
-* Gen topology and init nodes
-* 
-* Read config and start scenario
-## 2. Work part
-* Run scenario
-* 
-## 3. Output part
-* Pretty debug with different levels
+Rust block is a event-based blockchain network simulator written in Rust as part of course project at HSE.
 
-## 4. Extension plan
-1. Hardcode
-2. Work with config
-3. Nodes behaviour
+The key feature of the project is high performance
 
-# Messages exist
-* Connect
-* Connet response
-- 
-* Find peers(get_addrs)
-* Ask for block/transaction
-* Init connection(Get data)
-* 
+## Configuring the simulation
 
-# Nodes
-* Full node
-* Pruned node
-* Mining node
-* Wallet
-
-# Configs
-* Part of nodes with n-th block as current
-  - Implement tree block struct
+At the moment the configuration of the simulation must be done programmatically by adding the simulation code in the main.rs

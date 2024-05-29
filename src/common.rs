@@ -5,7 +5,7 @@ use rand_distr::{Distribution, LogNormal, Exp};
 use uuid::Uuid;
 use twox_hash::xxh3::hash64;
 
-use crate::_structs_2::{Tx, Block};
+use crate::components::{Tx, Block};
 
 pub fn gen_peers(cur_id: u32, from: u32, to : u32, is_connected: fn(u32, u32)->bool) -> Vec<u32> {
     let mut result = Vec::new();

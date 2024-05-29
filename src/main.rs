@@ -2,11 +2,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use dslab::{Simulation, Id};
-use rustblock::_full_node::BitcoinFullNode;
+use rustblock::btc_full_node::BitcoinFullNode;
 
 use rustblock::common::{create_chain, gen_peers, connect_with_uniform_prob};
 use rustblock::driver::Driver;
-use rustblock::_structs_2::{InitialState, Node};
+use rustblock::components::{InitialState, Node};
 
 use log::{debug, info};
 use env_logger;
